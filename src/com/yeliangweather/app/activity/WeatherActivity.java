@@ -1,21 +1,24 @@
 package com.yeliangweather.app.activity;
 
-import com.yeliangweather.app.R;
-import com.yeliangweather.app.util.HttpCallbackListener;
-import com.yeliangweather.app.util.HttpUtil;
-import com.yeliangweather.app.util.Utility;
-
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class WeatherActivity extends Activity
+import com.yeliangweather.app.R;
+import com.yeliangweather.app.util.HttpCallbackListener;
+import com.yeliangweather.app.util.HttpUtil;
+import com.yeliangweather.app.util.Utility;
+
+public class WeatherActivity extends Activity implements OnClickListener
 {
 	private LinearLayout weatherInfoLayout;
 	
@@ -43,6 +46,14 @@ public class WeatherActivity extends Activity
 	 * 用于显示当前日期
 	 */
 	private TextView currentDateText;
+	/**
+	 * 切换城市按钮
+	 */
+	private Button switchCity;
+	/**
+	 * 更新天气按钮
+	 */
+	private Button refreshWeather;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -58,6 +69,11 @@ public class WeatherActivity extends Activity
 		temp1Text = (TextView)findViewById(R.id.temp1);
 		temp2Text = (TextView)findViewById(R.id.temp2);
 		currentDateText = (TextView)findViewById(R.id.current_data);
+		switchCity = (Button)findViewById(R.id.switch_city);
+		refreshWeather = (Button)findViewById(R.id.refresh_weather);
+		//添加点击事件
+		switchCity.setOnClickListener(this);
+		refreshWeather.setOnClickListener(this);
 		//从上一个页面转过来，取出其中的countyCode县级代号
 		String countyCode = getIntent().getStringExtra("county_code");
 		if(!TextUtils.isEmpty(countyCode))
@@ -150,8 +166,7 @@ public class WeatherActivity extends Activity
 					{
 						publishText.setText("同步失败");					
 					}
-				});
-				
+				});			
 			}
 		});	
 	}
@@ -171,5 +186,34 @@ public class WeatherActivity extends Activity
 		currentDateText.setText(prefs.getString("current_date", ""));
 		weatherInfoLayout.setVisibility(View.VISIBLE);
 		cityNameText.setVisibility(View.VISIBLE);
+	}
+
+	@Override
+	public void onClick(View v)
+	{
+		switch (v.getId())
+		{
+		case R.id.switch_city:
+			//切换城市，就启动ChooseAreaActivity活动，在带一个数据过去，用来判断是否从WeatherActivity跳转过来的
+			Intent intent = new Intent(this, ChooseAreaActivity.class);
+			intent.putExtra("from_weather_activity", true);
+			startActivity(intent);
+			finish();
+			break;
+			
+		case R.id.refresh_weather:
+			//更新天气数据，从本地文件中取出weatherCode，调用queryWeatherInfo()方法来查询天气
+			publishText.setText("数据同步中......");
+			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+			String weatherCode = prefs.getString("weather_code", "");
+			if(!TextUtils.isEmpty(weatherCode))
+			{
+				queryWeatherInfo(weatherCode);
+			}
+			break;
+			
+		default:
+			break;
+		}	
 	}
 }
