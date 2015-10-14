@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.yeliangweather.app.R;
+import com.yeliangweather.app.service.AutoUpdateService;
 import com.yeliangweather.app.util.HttpCallbackListener;
 import com.yeliangweather.app.util.HttpUtil;
 import com.yeliangweather.app.util.Utility;
@@ -186,6 +187,9 @@ public class WeatherActivity extends Activity implements OnClickListener
 		currentDateText.setText(prefs.getString("current_date", ""));
 		weatherInfoLayout.setVisibility(View.VISIBLE);
 		cityNameText.setVisibility(View.VISIBLE);
+		//一旦选中了某个城市并成功更新天气之后，AutoUpdateService就会一直在后台运行，并保证每8小时更新一次天气
+		Intent intent = new Intent(this, AutoUpdateService.class);
+		startService(intent);
 	}
 
 	@Override
